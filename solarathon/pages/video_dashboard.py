@@ -91,7 +91,10 @@ def Page():
         # Store frames
         VideoProcessor.raw_frames = frames
 
-        VideoProcessor.files_df.value.loc[len(VideoProcessor.files_df.value)] = [file["name"]]
+        df = VideoProcessor.files_df.value.copy()
+        df.loc[len(VideoProcessor.files_df.value)] = [file["name"]]
+        VideoProcessor.files_df.value = df
+
         # Remove temp file
         os.remove(temp_file.name)
 
