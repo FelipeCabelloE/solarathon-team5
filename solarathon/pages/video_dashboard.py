@@ -90,14 +90,19 @@ def Page():
 
         # Store frames
         VideoProcessor.raw_frames = frames
+
+        VideoProcessor.files_df.value.loc[len(VideoProcessor.files_df.value)] = [file["name"]]
         # Remove temp file
         os.remove(temp_file.name)
 
     # Interface
     with sl.Column() as main:
         with sl.Sidebar():
+            sl.Markdown('### Video files:')
+            sl.DataFrame(VideoProcessor.files_df.value, items_per_page=5)
             sl.Markdown('### Video upload:')
             sl.Info(file_status)
+            sl.Warning(f'{os.getcwd()}/')
             sl.FileDrop(label='Please provide a video to analyse.', lazy=False, on_file=on_file)
             
             sl.Select(label='Type of analysis', values=VideoProcessor.analysis_types

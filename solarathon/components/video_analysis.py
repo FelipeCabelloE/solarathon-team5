@@ -22,6 +22,9 @@ class VideoProcessor:
 
     set_frame_progress = sl.reactive(lambda: None)
 
+    files_df = sl.reactive(pd.DataFrame(
+        [['golf.mp4']], columns=['Name']))     
+
     @classmethod
     def load_model(VideoProcessor, value):
         if value == 'Pose':
