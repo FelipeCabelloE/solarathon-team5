@@ -77,6 +77,7 @@ def Page():
     frame_progress, set_frame_progress = sl.use_state(0.0)
     VideoProcessor.set_frame_progress = set_frame_progress
     show_video_player, set_show_video_player = sl.use_state(True)
+    process_video_react = sl.use_reactive(False)
 
     # Select among default videos:
     def on_action_cell(column, row_index):
@@ -111,6 +112,13 @@ def Page():
         if os.path.isfile(VideoProcessor.temp_filename):
             os.remove(VideoProcessor.temp_filename)
 
+    def process_video():
+        if process_video_react.value:
+            VideoProcessor.process_video()
+        process_video_react.set(False)
+
+    sl.use_thread(process_video, dependencies=[process_video_react.value])            
+
     # Interface
     with sl.Column() as main:
         sl.Title("Video dashboard")
@@ -125,7 +133,7 @@ def Page():
                       on_value=VideoProcessor.load_model)
             with sl.Column():
                 sl.ProgressLinear(value=frame_progress, color="blue")
-                sl.Button(label='Start analysis', on_click=VideoProcessor.process_video)
+                sl.Button(label='Start analysis', on_click=lambda: process_video_react.set(True))
 
                 if frame_progress == 0:
                     sl.Warning(label=analysis_status)
