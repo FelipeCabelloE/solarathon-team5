@@ -17,13 +17,13 @@ class VideoProcessor:
     raw_frames = []
     processed_frames = []
     processed_data = []
+    processed_data_df = pd.DataFrame()
 
     active_frame = sl.reactive(np.zeros((10, 10)).astype(int))
 
     set_frame_progress = sl.reactive(lambda: None)
 
-    files_df = sl.reactive(pd.DataFrame(
-        [['golf.mp4']], columns=['Name']))     
+    files_df = sl.reactive(pd.DataFrame([['golf.mp4', True]], columns=['Name', 'Default example']))
 
     @classmethod
     def load_model(VideoProcessor, value):
@@ -32,7 +32,20 @@ class VideoProcessor:
         elif value == 'Detect':
             VideoProcessor.model = YOLO('yolov8s.pt')
         else:
-            return None    
+            return None
+    
+    @classmethod
+    def load_video(VideoProcessor, filename):
+        video = cv2.VideoCapture(filename)
+        frames = []
+        frame_count = int(video.get(cv2.CAP_PROP_FRAME_COUNT))  # Get the total number of frames
+
+        for frame_index in range(frame_count):
+            video.set(cv2.CAP_PROP_POS_FRAMES, frame_index)  # Seek to the specific frame
+            ret, frame = video.read()  # Read the frame
+            if ret:
+                frames.append(frame)
+        VideoProcessor.raw_frames = frames
 
     @classmethod
     def process_video(VideoProcessor):
