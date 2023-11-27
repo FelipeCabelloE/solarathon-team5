@@ -11,8 +11,13 @@ route_order = ["/", "settings", "chat", "clickbutton", 'video_dashboard']
 
 @solara.component
 def Page():
+
     with solara.Column(style={"padding-top": "30px"}):
         solara.Title("Solarathon example project")
+
+        with solara.Link("video_dashboard"):
+            solara.Button(label='Video dashboard')
+
         # Calculate word_count within the component to ensure re-execution when reactive variables change.
         word_count = len(sentence.value.split())
 

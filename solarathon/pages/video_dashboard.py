@@ -7,10 +7,14 @@ import numpy as np
 from ultralytics import YOLO
 import plotly.express as px
 import pandas as pd
-
+import time
+from matplotlib.figure import Figure
 from solara.components.file_drop import FileInfo
-
+import matplotlib.animation as animation
 from solarathon.components.video_analysis import VideoProcessor, process_video_pose
+
+
+auto_play_frames = sl.reactive(False)
 
 
 def load_model(value):
@@ -31,6 +35,7 @@ def FrameViewer():
     deselect_data, set_deselect_data = sl.use_state(None)
 
     fig = px.imshow(VideoProcessor.active_frame.value)
+
     fig.update_layout(coloraxis_showscale=False)
     fig.update_xaxes(showticklabels=False)
     fig.update_yaxes(showticklabels=False)
@@ -38,6 +43,32 @@ def FrameViewer():
     sl.FigurePlotly(
         fig, on_selection=set_selection_data, on_click=set_click_data, on_hover=set_hover_data, on_unhover=set_unhover_data, on_deselect=set_deselect_data,
     )
+
+@sl.component
+def AnimationViewer():
+
+    fig = Figure()
+    ax = fig.add_subplot(1, 1, 1)
+    frame_ax = ax.imshow(VideoProcessor.active_frame.value)
+
+    ani = animation.ArtistAnimation(fig, VideoProcessor.processed_frames, interval=50, blit=True, repeat_delay=1000)
+
+    return sl.FigureMatplotlib(fig)
+
+@sl.component
+def FrameVideo():
+    fig = Figure()
+    ax = fig.add_subplot(1, 1, 1)
+    frame_ax = ax.imshow(VideoProcessor.active_frame.value)
+
+    ani = animation.ArtistAnimation(fig, VideoProcessor.processed_frames, interval=50, blit=True, repeat_delay=1000)
+    html_vid = ani.to_html5_video()
+
+    with sl.VBox() as main:
+        sl.HTML(tag="video", unsafe_innerHTML=html_vid)
+    
+    return main
+
 
 @sl.component
 def KeypointViewer():
@@ -136,8 +167,18 @@ def Page():
     def update_frame(value):
         VideoProcessor.active_frame.value = VideoProcessor.processed_frames[value]
 
+    def continuous_update(value):
+        if auto_play_frames.value:
+            for frame_idx in range(len(VideoProcessor.processed_frames)-1):
+                update_frame(frame_idx)
+        #     VideoProcessor.video_frame.value +=1
+        #     if VideoProcessor.video_frame.value == len(VideoProcessor.processed_frames)-1:
+        #         VideoProcessor.video_frame.value = 0
+                time.sleep(0.01)
+
     # Interface
     with sl.Column() as main:
+        sl.Title("Video dashboard")
         with sl.Sidebar():
             sl.Markdown('### Video upload:')
             sl.Info(file_status)
@@ -159,9 +200,19 @@ def Page():
 
         if frame_progress >= 99.5:
             with sl.GridFixed(columns=2):
-                FrameViewer()
-                KeypointViewer()
+                # FrameViewer()
+                # KeypointViewer()
+                # AnimationViewer()
+                FrameVideo()
                 sl.SliderInt(label='Frame:', min=0, max=len(VideoProcessor.raw_frames)-1, value=VideoProcessor.video_frame, on_value=update_frame)
+            sl.Switch(label="Auto-play video", value=auto_play_frames, on_value=continuous_update)
 
+        #     if auto_play_frames.value:
+        # while True:
+        #     update_frame(VideoProcessor.video_frame.value)
+        #     VideoProcessor.video_frame.value +=1
+        #     if VideoProcessor.video_frame.value == len(VideoProcessor.processed_frames)-1:
+        #         VideoProcessor.video_frame.value = 0
+        #     time.sleep(0.05)
 
     return main
