@@ -15,7 +15,7 @@ from matplotlib.figure import Figure
 from PIL import Image
 from solara.components.file_drop import FileInfo
 
-from solarathon.components.video_analysis import VideoProcessor
+from solarathon.state import VideoProcessor
 
 @sl.component
 def FrameViewer():
@@ -38,12 +38,12 @@ def FrameViewer():
 
 @sl.component
 def FrameVideo():
-    url = 'https://github.com/FelipeCabelloE/solarathon-team5/raw/video_dashboard/solarathon/data/golf.mp4'
+    url = f'static/public/{VideoProcessor.name}'
     ipywidgets.Video.element(value=url.encode('utf8'), format='url', width=500)
 
 
 @sl.component
-def KeypointViewer():
+def AnalysisViewer():
 
     selection_data, set_selection_data = sl.use_state(None)
     click_data, set_click_data = sl.use_state(None)
@@ -51,12 +51,19 @@ def KeypointViewer():
     unhover_data, set_unhover_data = sl.use_state(None)
     deselect_data, set_deselect_data = sl.use_state(None)
 
-    mask_frame = VideoProcessor.processed_data_df['frame'] < VideoProcessor.video_frame.value
-    mask_keypoints_nonzero = (VideoProcessor.processed_data_df['coord0'] > 0) | (VideoProcessor.processed_data_df['coord1'] > 0) 
-    fig=px.line(VideoProcessor.processed_data_df[mask_frame & mask_keypoints_nonzero], x='coord0', y='coord1', color='keypoint')
+    mask_frame = VideoProcessor.processed_data_df.value["frame"] < VideoProcessor.video_frame.value
+    
+    if VideoProcessor.analysis_type.value == 'Pose':
+        mask_keypoints_nonzero = (VideoProcessor.processed_data_df.value['coord0'] > 0) | (VideoProcessor.processed_data_df.value['coord1'] > 0) 
+        fig=px.line(VideoProcessor.processed_data_df.value[mask_frame & mask_keypoints_nonzero], x='coord0', y='coord1', color='keypoint')
+        fig.update_xaxes(range=[0, VideoProcessor.active_frame.value.shape[1]])
+        fig.update_yaxes(range=[0, VideoProcessor.active_frame.value.shape[0]])
+    elif VideoProcessor.analysis_type.value == 'Detect':
+        fig=px.line(VideoProcessor.processed_data_df.value[mask_frame], x='frame', y='confidences', color='classes')
+        fig.update_xaxes(range=[0, len(VideoProcessor.raw_frames)])
+        fig.update_yaxes(range=[-0.05, 1.05])
+
     fig.update_layout(width=600, height=600)
-    fig.update_xaxes(range=[0, VideoProcessor.active_frame.value.shape[1]])
-    fig.update_yaxes(range=[0, VideoProcessor.active_frame.value.shape[0]])
 
     sl.FigurePlotly(
         fig, on_selection=set_selection_data, on_click=set_click_data, on_hover=set_hover_data, on_unhover=set_unhover_data, on_deselect=set_deselect_data,
@@ -65,19 +72,17 @@ def KeypointViewer():
 
 
 @sl.component
-def DashboardControls():
-    return
-
-
-@sl.component
 def Page():
 
     file_status, set_file_status = sl.use_state('No file received.')
-    analysis_status, set_analysis_status = sl.use_state('Analysis has not started. Please upload a video and press "Start analysis"!')
+    analysis_status, set_analysis_status = sl.use_state('Analysis has not started. Please select or upload a video and press "Start analysis"!')
     frame_progress, set_frame_progress = sl.use_state(0.0)
     VideoProcessor.set_frame_progress = set_frame_progress
     show_video_player, set_show_video_player = sl.use_state(True)
     process_video_react = sl.use_reactive(False)
+    analysis_complete = sl.use_reactive(False)
+    sport_name = sl.reactive('')
+    sport_clip_fps = sl.reactive(0)
 
     # Select among default videos:
     def on_action_cell(column, row_index):
@@ -85,8 +90,7 @@ def Page():
         if bool(VideoProcessor.files_df.value.loc[row_index, 'Default example']):
             set_file_status(f'New file: {selected_video_name}')
             VideoProcessor.name = selected_video_name
-            # Can this path be hardcoded for template videos?
-            VideoProcessor.load_video(f'/workspaces/solarathon-team5/solarathon/data/{selected_video_name}')
+            VideoProcessor.load_video(f'/workspaces/solarathon-team5/solarathon/public/{selected_video_name}')
     cell_actions = [sl.CellAction(name="Load video", on_click=on_action_cell)]
 
     def on_file(file: FileInfo):
@@ -115,9 +119,10 @@ def Page():
     def process_video():
         if process_video_react.value:
             VideoProcessor.process_video()
-        process_video_react.set(False)
+            analysis_complete.set(True)
+            process_video_react.set(False)
 
-    sl.use_thread(process_video, dependencies=[process_video_react.value])            
+    sl.use_thread(process_video, dependencies=[process_video_react.value])
 
     # Interface
     with sl.Column() as main:
@@ -125,7 +130,11 @@ def Page():
         with sl.Sidebar():
             sl.Markdown('### Video files:')
             sl.DataFrame(VideoProcessor.files_df.value, items_per_page=5, cell_actions=cell_actions)
+            sl.Markdown('### Video upload:')
             sl.Info(file_status)
+            with sl.GridFixed(columns=2):
+                sl.InputText('Sport name:', value=sport_name)
+                sl.InputInt('Video FPS:', value=sport_clip_fps)
             sl.FileDrop(label='Alternatively, please provide a video to analyse.', lazy=False, on_file=on_file)
             
             sl.Select(label='Type of analysis', values=VideoProcessor.analysis_types,
@@ -140,12 +149,12 @@ def Page():
                 elif (frame_progress > 0) and (frame_progress < 99.5):
                     set_analysis_status(f'Running analysis: {int(frame_progress)} %')
                     sl.Info(label=analysis_status)
-                elif frame_progress >= 99.5:
+                elif analysis_complete.value:
                     set_analysis_status('Analysis complete!')
                     sl.Success(label=analysis_status)
                 sl.Button(label='Clear temporary files', on_click=clear_files)
 
-        if frame_progress >= 99.5:
+        if analysis_complete.value:
             with sl.GridFixed(columns=2):
                 with sl.Column():
                     if show_video_player:
@@ -157,7 +166,16 @@ def Page():
                         sl.SliderInt(label='Frame:', min=0, max=len(VideoProcessor.raw_frames)-1,
                                      value=VideoProcessor.video_frame, on_value=VideoProcessor.update_frame)
                 with sl.Column():
-                    KeypointViewer()
-                
+                    AnalysisViewer()
+
+        sl.Markdown('''
+        Videos obtained from:
+        
+        - [GolfDB](https://github.com/wmcnally/GolfDB)
+
+        - Mikel D. Rodriguez, Javed Ahmed, and Mubarak Shah, Action MACH: A Spatio-temporal Maximum Average Correlation Height Filter for Action Recognition, Computer Vision and Pattern Recognition, 2008.
+        
+        - Khurram Soomro and Amir R. Zamir, Action Recognition in Realistic Sports Videos, Computer Vision in Sports. Springer International Publishing, 2014.
+        ''')
 
     return main
