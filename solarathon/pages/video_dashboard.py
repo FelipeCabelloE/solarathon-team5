@@ -160,17 +160,18 @@ def Page():
                         sl.Success(label=analysis_status)
                     sl.Button(label='Clear temporary files', on_click=clear_files)
 
-                if analysis_complete.value:
-
+            if analysis_complete.value:
+                with sl.Column():
                     if show_video_player:
                         FrameVideo()
                     else:
                         FrameViewer()
+                    with sl.Columns([2, 3]):
+                        sl.Switch(label="Media player", value=show_video_player, on_value=set_show_video_player)
+                        sl.SliderInt(label='Frame:', min=0, max=len(VideoProcessor.raw_frames)-1,
+                                    value=VideoProcessor.video_frame, on_value=VideoProcessor.update_frame)
 
-                    sl.Switch(label="Media player", value=show_video_player, on_value=set_show_video_player)
-                    sl.SliderInt(label='Frame:', min=0, max=len(VideoProcessor.raw_frames)-1,
-                                value=VideoProcessor.video_frame, on_value=VideoProcessor.update_frame)
-
+                with sl.Column():
                     AnalysisViewer()
 
     return main
