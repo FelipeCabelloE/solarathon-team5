@@ -132,7 +132,7 @@ def Page():
         with sl.Sidebar():
             SharedComponent()
 
-        with sl.Columns([1, 1, 1]):
+        with sl.ColumnsResponsive(small=12, large=[4, 4, 4]):
             with sl.Card(sl.Text(text=""), style={"max-width": "500px"}, margin=0, classes=["my-2"]):
                 sl.Markdown('### Video files:')
                 sl.DataFrame(VideoProcessor.files_df.value, items_per_page=5, cell_actions=cell_actions)
