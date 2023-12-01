@@ -160,7 +160,7 @@ def Page():
                         sl.Success(label=analysis_status)
                     sl.Button(label='Clear temporary files', on_click=clear_files)
 
-                if True:
+                if analysis_complete.value:
 
                     if show_video_player:
                         FrameVideo()
