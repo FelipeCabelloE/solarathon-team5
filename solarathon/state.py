@@ -28,7 +28,7 @@ class VideoProcessor:
                                          ['Skateboarding', 'skateboarding.mp4', 10, True],
                                          ['Diving', 'diving.mp4', 10, True]],
                                          columns=['Sport', 'Name', 'FPS', 'Default example']))
-    name = sl.reactive('golf.mp4')
+    name = sl.reactive('')
 
     @classmethod
     def load_model(VideoProcessor, value):
