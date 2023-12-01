@@ -1,4 +1,29 @@
 import solara
+from solara.alias import rv
+
+
+@solara.component
+def SharedComponent():
+    with solara.Card(solara.Text(text="Welcome, the future awaits"), style={"max-width": "500px"}, margin=0, classes=["my-2"]):
+        url = "https://github.com/FelipeCabelloE/solarathon-team5/assets/98831429/dcd12b29-165c-4933-8721-ebffa15e8ba7"
+        rv.Img(src=url, contain=True, max_height="400px")
+        solara.Markdown(
+            f'''
+        Videos obtained from:
+        
+        - [GolfDB](https://github.com/wmcnally/GolfDB)
+
+        - Mikel D. Rodriguez, Javed Ahmed, and Mubarak Shah, Action MACH: A Spatio-temporal Maximum Average Correlation Height Filter for Action Recognition, Computer Vision and Pattern Recognition, 2008.
+        
+        - Khurram Soomro and Amir R. Zamir, Action Recognition in Realistic Sports Videos, Computer Vision in Sports. Springer International Publishing, 2014.
+        ''')
+        
+
+
+
+
+
+
 
 # Declare reactive variables at the top level. Components using these variables
 # will be re-executed when their values change.
@@ -7,35 +32,23 @@ word_limit = solara.reactive(10)
 
 
 # in case you want to override the default order of the tabs
-route_order = ["/", "settings", "chat", "clickbutton", 'video_dashboard']
+route_order = ["/", 'video_dashboard']
 
 @solara.component
 def Page():
+    with solara.Sidebar():
+        solara.Text("")
 
     with solara.Column(style={"padding-top": "30px"}):
-        solara.Title("Solarathon example project")
+        solara.Title("Quiet Heart (Solara(thon) Team 5)")
 
         with solara.Link("video_dashboard"):
-            solara.Button(label='Video dashboard')
-
-        # Calculate word_count within the component to ensure re-execution when reactive variables change.
-        word_count = len(sentence.value.split())
-
-        solara.SliderInt("Word limit", value=word_limit, min=2, max=20)
-        solara.InputText(label="Your sentence", value=sentence, continuous_update=True)
-
-        # Display messages based on the current word count and word limit.
-        if word_count >= int(word_limit.value):
-            solara.Error(f"With {word_count} words, you passed the word limit of {word_limit.value}.")
-        elif word_count >= int(0.8 * word_limit.value):
-            solara.Warning(f"With {word_count} words, you are close to the word limit of {word_limit.value}.")
-        else:
-            solara.Success("Great short writing!")
-
-        solara.Markdown("*First exercise*: remove this text and write your own sentence.")
+            solara.Button(label='Video dashboard',)
+            
+        SharedComponent()
 
 
 @solara.component
 def Layout(children):
     # this is the default layout, but you can override it here, for instance some extra padding
-    return solara.AppLayout(children=children, style={"padding": "20px"})
+    return solara.AppLayout(children=children, style={"padding": "30px"}, sidebar_open=False)

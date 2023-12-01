@@ -7,7 +7,7 @@ def Page():
     clicks = solara.use_reactive(0)
     color = "green"
     if clicks.value >= 5:
-        color = "red"
+        color = "blue"
 
     def increment():
         clicks.value += 1

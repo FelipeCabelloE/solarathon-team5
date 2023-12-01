@@ -1,4 +1,13 @@
-# Install locally
+# Welcome to Quiet Heart
+
+**The source of your sport analysis needs.**
+
+![logo 1](https://github.com/FelipeCabelloE/solarathon-team5/assets/98831429/dcd12b29-165c-4933-8721-ebffa15e8ba7)
+
+
+
+Quiet heart is a sample computer vision project that aims to provide a simple and easy interface to do sport video analysis. 
+
 ```
 pip install -e .
 ```

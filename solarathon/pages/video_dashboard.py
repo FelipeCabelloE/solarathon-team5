@@ -16,6 +16,8 @@ from PIL import Image
 from solara.components.file_drop import FileInfo
 
 from solarathon.state import VideoProcessor
+from solarathon.pages import SharedComponent
+from solara.alias import rv
 
 @sl.component
 def FrameViewer():
@@ -31,7 +33,7 @@ def FrameViewer():
     fig.update_layout(coloraxis_showscale=False)
     fig.update_xaxes(showticklabels=False)
     fig.update_yaxes(showticklabels=False)
-    fig.update_layout(width=550, height=550)
+    # fig.update_layout(width=550, height=550)
     sl.FigurePlotly(
         fig, on_selection=set_selection_data, on_click=set_click_data, on_hover=set_hover_data, on_unhover=set_unhover_data, on_deselect=set_deselect_data,
     )
@@ -128,34 +130,37 @@ def Page():
     with sl.Column() as main:
         sl.Title("Video dashboard")
         with sl.Sidebar():
-            sl.Markdown('### Video files:')
-            sl.DataFrame(VideoProcessor.files_df.value, items_per_page=5, cell_actions=cell_actions)
-            sl.Markdown('### Video upload:')
-            sl.Info(file_status)
-            with sl.GridFixed(columns=2):
-                sl.InputText('Sport name:', value=sport_name)
-                sl.InputInt('Video FPS:', value=sport_clip_fps)
-            sl.FileDrop(label='Alternatively, please provide a video to analyse.', lazy=False, on_file=on_file)
-            
-            sl.Select(label='Type of analysis', values=VideoProcessor.analysis_types,
-                      value=VideoProcessor.analysis_type,
-                      on_value=VideoProcessor.load_model)
-            with sl.Column():
-                sl.ProgressLinear(value=frame_progress, color="blue")
-                sl.Button(label='Start analysis', on_click=lambda: process_video_react.set(True))
+            SharedComponent()
 
-                if frame_progress == 0:
-                    sl.Warning(label=analysis_status)
-                elif (frame_progress > 0) and (frame_progress < 99.5):
-                    set_analysis_status(f'Running analysis: {int(frame_progress)} %')
-                    sl.Info(label=analysis_status)
-                elif analysis_complete.value:
-                    set_analysis_status('Analysis complete!')
-                    sl.Success(label=analysis_status)
-                sl.Button(label='Clear temporary files', on_click=clear_files)
+        with sl.ColumnsResponsive(small=12, large=[4, 4, 4]):
+            with sl.Card(sl.Text(text=""), style={"max-width": "500px"}, margin=0, classes=["my-2"]):
+                sl.Markdown('### Video files:')
+                sl.DataFrame(VideoProcessor.files_df.value, items_per_page=5, cell_actions=cell_actions)
+                sl.Markdown('### Video upload:')
+                sl.Info(file_status)
+                with sl.GridFixed(columns=2):
+                    sl.InputText('Sport name:', value=sport_name)
+                    sl.InputInt('Video FPS:', value=sport_clip_fps)
+                sl.FileDrop(label='Alternatively, please provide a video to analyse.', lazy=False, on_file=on_file)
+                
+                sl.Select(label='Type of analysis', values=VideoProcessor.analysis_types,
+                        value=VideoProcessor.analysis_type,
+                        on_value=VideoProcessor.load_model)
+                with sl.Column():
+                    sl.ProgressLinear(value=frame_progress, color="blue")
+                    sl.Button(label='Start analysis', on_click=lambda: process_video_react.set(True))
 
-        if analysis_complete.value:
-            with sl.GridFixed(columns=2):
+                    if frame_progress == 0:
+                        sl.Warning(label=analysis_status)
+                    elif (frame_progress > 0) and (frame_progress < 99.5):
+                        set_analysis_status(f'Running analysis: {int(frame_progress)} %')
+                        sl.Info(label=analysis_status)
+                    elif analysis_complete.value:
+                        set_analysis_status('Analysis complete!')
+                        sl.Success(label=analysis_status)
+                    sl.Button(label='Clear temporary files', on_click=clear_files)
+
+            if analysis_complete.value:
                 with sl.Column():
                     if show_video_player:
                         FrameVideo()
@@ -164,18 +169,9 @@ def Page():
                     with sl.Columns([2, 3]):
                         sl.Switch(label="Media player", value=show_video_player, on_value=set_show_video_player)
                         sl.SliderInt(label='Frame:', min=0, max=len(VideoProcessor.raw_frames)-1,
-                                     value=VideoProcessor.video_frame, on_value=VideoProcessor.update_frame)
+                                    value=VideoProcessor.video_frame, on_value=VideoProcessor.update_frame)
+
                 with sl.Column():
                     AnalysisViewer()
-
-        sl.Markdown('''
-        Videos obtained from:
-        
-        - [GolfDB](https://github.com/wmcnally/GolfDB)
-
-        - Mikel D. Rodriguez, Javed Ahmed, and Mubarak Shah, Action MACH: A Spatio-temporal Maximum Average Correlation Height Filter for Action Recognition, Computer Vision and Pattern Recognition, 2008.
-        
-        - Khurram Soomro and Amir R. Zamir, Action Recognition in Realistic Sports Videos, Computer Vision in Sports. Springer International Publishing, 2014.
-        ''')
 
     return main
