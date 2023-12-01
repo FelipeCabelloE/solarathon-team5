@@ -36,6 +36,8 @@ route_order = ["/", 'video_dashboard']
 
 @solara.component
 def Page():
+    with solara.Sidebar():
+        solara.Text("")
 
     with solara.Column(style={"padding-top": "30px"}):
         solara.Title("Quiet Heart (Solara(thon) Team 5)")
@@ -49,4 +51,4 @@ def Page():
 @solara.component
 def Layout(children):
     # this is the default layout, but you can override it here, for instance some extra padding
-    return solara.AppLayout(children=children, style={"padding": "30px"})
+    return solara.AppLayout(children=children, style={"padding": "30px"}, sidebar_open=False)
