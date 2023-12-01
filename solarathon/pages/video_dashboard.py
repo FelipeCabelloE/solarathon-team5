@@ -40,7 +40,7 @@ def FrameViewer():
 
 @sl.component
 def FrameVideo():
-    url = f'static/public/{VideoProcessor.name.value}'
+    url = f'static/public/{VideoProcessor.name}'
     ipywidgets.Video.element(value=url.encode('utf8'), format='url', width=500)
 
 
