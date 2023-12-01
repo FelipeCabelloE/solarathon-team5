@@ -131,45 +131,46 @@ def Page():
         sl.Title("Video dashboard")
         with sl.Sidebar():
             SharedComponent()
-        with sl.Card(sl.Text(text=""), style={"max-width": "500px"}, margin=0, classes=["my-2"]):
 
-            sl.Markdown('### Video files:')
-            sl.DataFrame(VideoProcessor.files_df.value, items_per_page=5, cell_actions=cell_actions)
-            sl.Markdown('### Video upload:')
-            sl.Info(file_status)
-            with sl.GridFixed(columns=2):
-                sl.InputText('Sport name:', value=sport_name)
-                sl.InputInt('Video FPS:', value=sport_clip_fps)
-            sl.FileDrop(label='Alternatively, please provide a video to analyse.', lazy=False, on_file=on_file)
-            
-            sl.Select(label='Type of analysis', values=VideoProcessor.analysis_types,
-                      value=VideoProcessor.analysis_type,
-                      on_value=VideoProcessor.load_model)
-            with sl.Column():
-                sl.ProgressLinear(value=frame_progress, color="blue")
-                sl.Button(label='Start analysis', on_click=lambda: process_video_react.set(True))
+        with sl.Columns([1, 1, 1]):
+            with sl.Card(sl.Text(text=""), style={"max-width": "500px"}, margin=0, classes=["my-2"]):
+                sl.Markdown('### Video files:')
+                sl.DataFrame(VideoProcessor.files_df.value, items_per_page=5, cell_actions=cell_actions)
+                sl.Markdown('### Video upload:')
+                sl.Info(file_status)
+                with sl.GridFixed(columns=2):
+                    sl.InputText('Sport name:', value=sport_name)
+                    sl.InputInt('Video FPS:', value=sport_clip_fps)
+                sl.FileDrop(label='Alternatively, please provide a video to analyse.', lazy=False, on_file=on_file)
+                
+                sl.Select(label='Type of analysis', values=VideoProcessor.analysis_types,
+                        value=VideoProcessor.analysis_type,
+                        on_value=VideoProcessor.load_model)
+                with sl.Column():
+                    sl.ProgressLinear(value=frame_progress, color="blue")
+                    sl.Button(label='Start analysis', on_click=lambda: process_video_react.set(True))
 
-                if frame_progress == 0:
-                    sl.Warning(label=analysis_status)
-                elif (frame_progress > 0) and (frame_progress < 99.5):
-                    set_analysis_status(f'Running analysis: {int(frame_progress)} %')
-                    sl.Info(label=analysis_status)
-                elif analysis_complete.value:
-                    set_analysis_status('Analysis complete!')
-                    sl.Success(label=analysis_status)
-                sl.Button(label='Clear temporary files', on_click=clear_files)
+                    if frame_progress == 0:
+                        sl.Warning(label=analysis_status)
+                    elif (frame_progress > 0) and (frame_progress < 99.5):
+                        set_analysis_status(f'Running analysis: {int(frame_progress)} %')
+                        sl.Info(label=analysis_status)
+                    elif analysis_complete.value:
+                        set_analysis_status('Analysis complete!')
+                        sl.Success(label=analysis_status)
+                    sl.Button(label='Clear temporary files', on_click=clear_files)
 
             if analysis_complete.value:
-                if show_video_player:
-                    FrameVideo()
-                else:
-                    FrameViewer()
-                sl.Switch(label="Media player", value=show_video_player, on_value=set_show_video_player)
-                sl.SliderInt(label='Frame:', min=0, max=len(VideoProcessor.raw_frames)-1,
-                            value=VideoProcessor.video_frame, on_value=VideoProcessor.update_frame)
-
-                AnalysisViewer()
-
-
+                with sl.Column():
+                    if show_video_player:
+                        FrameVideo()
+                    else:
+                        FrameViewer()
+                    with sl.Columns([2, 3]):
+                        sl.Switch(label="Media player", value=show_video_player, on_value=set_show_video_player)
+                        sl.SliderInt(label='Frame:', min=0, max=len(VideoProcessor.raw_frames)-1,
+                                    value=VideoProcessor.video_frame, on_value=VideoProcessor.update_frame)
+                with sl.Column():
+                    AnalysisViewer()
 
     return main
