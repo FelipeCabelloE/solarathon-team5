@@ -1,14 +1,14 @@
 import solara
-
+from solara.alias import rv
 
 
 @solara.component
 def SharedComponent():
-    with solara.Card("Shown on each page", style={"max-width": "500px"}, margin=0, classes=["my-2"]):
+    with solara.Card(solara.Text(text="Welcome, the future awaits"), style={"max-width": "500px"}, margin=0, classes=["my-2"]):
+        url = "https://github.com/FelipeCabelloE/solarathon-team5/assets/98831429/dcd12b29-165c-4933-8721-ebffa15e8ba7"
+        rv.Img(src=url, contain=True, max_height="400px")
         solara.Markdown(
             f'''
-            
-        
         Videos obtained from:
         
         - [GolfDB](https://github.com/wmcnally/GolfDB)
@@ -49,4 +49,4 @@ def Page():
 @solara.component
 def Layout(children):
     # this is the default layout, but you can override it here, for instance some extra padding
-    return solara.AppLayout(children=children, style={"padding": "20px"})
+    return solara.AppLayout(children=children, style={"padding": "30px"})
