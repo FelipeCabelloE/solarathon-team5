@@ -40,7 +40,7 @@ def FrameViewer():
 
 @sl.component
 def FrameVideo():
-    url = f'static/public/{VideoProcessor.name}'
+    url = f'static/public/{VideoProcessor.name.value}'
     ipywidgets.Video.element(value=url.encode('utf8'), format='url', width=500)
 
 
@@ -147,7 +147,7 @@ def Page():
                 sl.Select(label='Type of analysis', values=VideoProcessor.analysis_types,
                         value=VideoProcessor.analysis_type,
                         on_value=VideoProcessor.load_model)
-                if (len(VideoProcessor.analysis_type.value) > 1) and (len(VideoProcessor.name) > 1):
+                if (len(VideoProcessor.analysis_type.value) > 1) and (len(VideoProcessor.name.value) > 1):
                     set_start_analysis(False)
                 with sl.Column():
                     sl.ProgressLinear(value=frame_progress, color="blue")
