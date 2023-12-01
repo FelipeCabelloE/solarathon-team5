@@ -133,7 +133,7 @@ def Page():
             SharedComponent()
 
         with sl.Columns([1, 1, 1]):
-            with sl.Card(sl.Text(text=""), style={"max-width": "500px"}, margin=0, classes=["my-2"]):
+            with sl.Card(sl.Text(text=""), style={"max-width": "700px"}, margin=0, classes=["my-2"]):
                 sl.Markdown('### Video files:')
                 sl.DataFrame(VideoProcessor.files_df.value, items_per_page=5, cell_actions=cell_actions)
                 sl.Markdown('### Video upload:')
@@ -160,17 +160,17 @@ def Page():
                         sl.Success(label=analysis_status)
                     sl.Button(label='Clear temporary files', on_click=clear_files)
 
-            if analysis_complete.value:
-                with sl.Column():
+                if True:
+
                     if show_video_player:
                         FrameVideo()
                     else:
                         FrameViewer()
-                    with sl.Columns([2, 3]):
-                        sl.Switch(label="Media player", value=show_video_player, on_value=set_show_video_player)
-                        sl.SliderInt(label='Frame:', min=0, max=len(VideoProcessor.raw_frames)-1,
-                                    value=VideoProcessor.video_frame, on_value=VideoProcessor.update_frame)
-                with sl.Column():
+
+                    sl.Switch(label="Media player", value=show_video_player, on_value=set_show_video_player)
+                    sl.SliderInt(label='Frame:', min=0, max=len(VideoProcessor.raw_frames)-1,
+                                value=VideoProcessor.video_frame, on_value=VideoProcessor.update_frame)
+
                     AnalysisViewer()
 
     return main
