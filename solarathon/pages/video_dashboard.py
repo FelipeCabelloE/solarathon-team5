@@ -168,14 +168,6 @@ def Page():
                 with sl.Column():
                     AnalysisViewer()
 
-        sl.Markdown('''
-        Videos obtained from:
-        
-        - [GolfDB](https://github.com/wmcnally/GolfDB)
 
-        - Mikel D. Rodriguez, Javed Ahmed, and Mubarak Shah, Action MACH: A Spatio-temporal Maximum Average Correlation Height Filter for Action Recognition, Computer Vision and Pattern Recognition, 2008.
-        
-        - Khurram Soomro and Amir R. Zamir, Action Recognition in Realistic Sports Videos, Computer Vision in Sports. Springer International Publishing, 2014.
-        ''')
 
     return main
