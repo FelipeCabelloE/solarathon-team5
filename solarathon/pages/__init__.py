@@ -13,26 +13,10 @@ route_order = ["/", "settings", "chat", "clickbutton", 'video_dashboard']
 def Page():
 
     with solara.Column(style={"padding-top": "30px"}):
-        solara.Title("Solarathon example project")
+        solara.Title("Quiet Heart (Solara(thon) Team 5)")
 
         with solara.Link("video_dashboard"):
             solara.Button(label='Video dashboard')
-
-        # Calculate word_count within the component to ensure re-execution when reactive variables change.
-        word_count = len(sentence.value.split())
-
-        solara.SliderInt("Word limit", value=word_limit, min=2, max=20)
-        solara.InputText(label="Your sentence", value=sentence, continuous_update=True)
-
-        # Display messages based on the current word count and word limit.
-        if word_count >= int(word_limit.value):
-            solara.Error(f"With {word_count} words, you passed the word limit of {word_limit.value}.")
-        elif word_count >= int(0.8 * word_limit.value):
-            solara.Warning(f"With {word_count} words, you are close to the word limit of {word_limit.value}.")
-        else:
-            solara.Success("Great short writing!")
-
-        solara.Markdown("*First exercise*: remove this text and write your own sentence.")
 
 
 @solara.component
