@@ -85,19 +85,20 @@ def Page():
     analysis_complete = sl.use_reactive(False)
     sport_name = sl.reactive('')
     sport_clip_fps = sl.reactive(0)
+    start_analysis, set_start_analysis = sl.use_state(True)
 
     # Select among default videos:
     def on_action_cell(column, row_index):
         selected_video_name = VideoProcessor.files_df.value.loc[row_index, 'Name']
         if bool(VideoProcessor.files_df.value.loc[row_index, 'Default example']):
             set_file_status(f'New file: {selected_video_name}')
-            VideoProcessor.name = selected_video_name
+            VideoProcessor.name.value = selected_video_name
             VideoProcessor.load_video(f'/workspaces/solarathon-team5/solarathon/public/{selected_video_name}')
     cell_actions = [sl.CellAction(name="Load video", on_click=on_action_cell)]
 
     def on_file(file: FileInfo):
         set_file_status(f'New file: {file["name"]}')
-        VideoProcessor.name = file["name"]
+        VideoProcessor.name.value = file["name"]
 
         # Create temp file
         temp_file = tempfile.NamedTemporaryFile(delete=False)
@@ -146,9 +147,11 @@ def Page():
                 sl.Select(label='Type of analysis', values=VideoProcessor.analysis_types,
                         value=VideoProcessor.analysis_type,
                         on_value=VideoProcessor.load_model)
+                if (len(VideoProcessor.analysis_type.value) > 1) and (len(VideoProcessor.name) > 1):
+                    set_start_analysis(False)
                 with sl.Column():
                     sl.ProgressLinear(value=frame_progress, color="blue")
-                    sl.Button(label='Start analysis', on_click=lambda: process_video_react.set(True))
+                    sl.Button(label='Start analysis', on_click=lambda: process_video_react.set(True), disabled=start_analysis)
 
                     if frame_progress == 0:
                         sl.Warning(label=analysis_status)
