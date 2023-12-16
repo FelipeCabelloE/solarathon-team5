@@ -1,7 +1,6 @@
 import solara
 from solara.alias import rv
 
-
 @solara.component
 def SharedComponent():
     with solara.Card(solara.Text(text="Welcome, the future awaits"), style={"max-width": "500px"}, margin=0, classes=["my-2"]):
@@ -17,19 +16,6 @@ def SharedComponent():
         
         - Khurram Soomro and Amir R. Zamir, Action Recognition in Realistic Sports Videos, Computer Vision in Sports. Springer International Publishing, 2014.
         ''')
-        
-
-
-
-
-
-
-
-# Declare reactive variables at the top level. Components using these variables
-# will be re-executed when their values change.
-sentence = solara.reactive("Solara makes our team more productive.")
-word_limit = solara.reactive(10)
-
 
 # in case you want to override the default order of the tabs
 route_order = ["/", 'video_dashboard']
