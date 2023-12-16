@@ -21,25 +21,7 @@ from solara.alias import rv
 
 @sl.component
 def FrameViewer():
-    '''
-    selection_data, set_selection_data = sl.use_state(None)
-    click_data, set_click_data = sl.use_state(None)
-    hover_data, set_hover_data = sl.use_state(None)
-    unhover_data, set_unhover_data = sl.use_state(None)
-    deselect_data, set_deselect_data = sl.use_state(None)
-
-    fig = px.imshow(VideoProcessor.active_frame.value)
-
-    fig.update_layout(coloraxis_showscale=False)
-    fig.update_xaxes(showticklabels=False)
-    fig.update_yaxes(showticklabels=False)
-    # fig.update_layout(width=550, height=550)
-    sl.FigurePlotly(
-        fig, on_selection=set_selection_data, on_click=set_click_data, on_hover=set_hover_data, on_unhover=set_unhover_data, on_deselect=set_deselect_data,
-    )
-    '''
-    
-    sl.Image(VideoProcessor.active_frame.value, width="100%") 
+    sl.Image(VideoProcessor.active_frame.value, width="500px") 
 
 @sl.component
 def FrameVideo():
