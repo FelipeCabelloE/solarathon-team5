@@ -21,7 +21,7 @@ from solara.alias import rv
 
 @sl.component
 def FrameViewer():
-
+    '''
     selection_data, set_selection_data = sl.use_state(None)
     click_data, set_click_data = sl.use_state(None)
     hover_data, set_hover_data = sl.use_state(None)
@@ -37,12 +37,14 @@ def FrameViewer():
     sl.FigurePlotly(
         fig, on_selection=set_selection_data, on_click=set_click_data, on_hover=set_hover_data, on_unhover=set_unhover_data, on_deselect=set_deselect_data,
     )
+    '''
+    
+    sl.Image(VideoProcessor.active_frame.value, width="100%") 
 
 @sl.component
 def FrameVideo():
     url = f'static/public/{VideoProcessor.name.value}'
     ipywidgets.Video.element(value=url.encode('utf8'), format='url', width=500)
-
 
 @sl.component
 def AnalysisViewer():
@@ -144,9 +146,12 @@ def Page():
                     sl.InputInt('Video FPS:', value=sport_clip_fps)
                 sl.FileDrop(label='Alternatively, please provide a video to analyse.', lazy=False, on_file=on_file)
                 
+                def change_analysis_type(value):
+                    analysis_complete.value = False
+                    VideoProcessor.load_model(value) 
+
                 sl.Select(label='Type of analysis', values=VideoProcessor.analysis_types,
-                        value=VideoProcessor.analysis_type,
-                        on_value=VideoProcessor.load_model)
+                        value=VideoProcessor.analysis_type, on_value=change_analysis_type)
                 if (len(VideoProcessor.analysis_type.value) > 1) and (len(VideoProcessor.name.value) > 1):
                     set_start_analysis(False)
                 with sl.Column():
@@ -169,7 +174,7 @@ def Page():
                         FrameVideo()
                         sl.Switch(label="Media player", value=show_video_player, on_value=set_show_video_player)
                 else:
-                    with sl.ColumnsResponsive(small=12, large=[6, 6]):
+                    with sl.ColumnsResponsive(small=12, large=[8, 4]):
                         with sl.Column():
                             FrameViewer()
                             sl.SliderInt(label='Frame:', min=0, max=len(VideoProcessor.raw_frames)-1,
