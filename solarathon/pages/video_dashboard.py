@@ -100,8 +100,9 @@ def Page():
 
     def clear_files():
         # Remove temp file from the video
-        if os.path.isfile(VideoProcessor.temp_filename):
-            os.remove(VideoProcessor.temp_filename)
+        tempfile.TemporaryDirectory().cleanup()
+        #if os.path.isfile(VideoProcessor.temp_filename):
+        #    os.remove(VideoProcessor.temp_filename)
 
     def process_video():
         if process_video_react.value:
@@ -130,6 +131,7 @@ def Page():
                 
                 def change_analysis_type(value):
                     analysis_complete.value = False
+                    VideoProcessor.set_frame_progress(0)
                     VideoProcessor.load_model(value) 
 
                 sl.Select(label='Type of analysis', values=VideoProcessor.analysis_types,
@@ -138,7 +140,12 @@ def Page():
                     set_start_analysis(False)
                 with sl.Column():
                     sl.ProgressLinear(value=frame_progress, color="blue")
-                    sl.Button(label='Start analysis', on_click=lambda: process_video_react.set(True), disabled=start_analysis)
+
+                    def start_process_video():
+                        VideoProcessor.set_frame_progress(0)
+                        process_video_react.set(True)
+
+                    sl.Button(label='Start analysis', on_click=start_process_video, disabled=start_analysis)
 
                     if frame_progress == 0:
                         sl.Warning(label=analysis_status)
