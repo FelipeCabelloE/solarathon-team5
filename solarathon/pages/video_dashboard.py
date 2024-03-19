@@ -21,28 +21,12 @@ from solara.alias import rv
 
 @sl.component
 def FrameViewer():
-
-    selection_data, set_selection_data = sl.use_state(None)
-    click_data, set_click_data = sl.use_state(None)
-    hover_data, set_hover_data = sl.use_state(None)
-    unhover_data, set_unhover_data = sl.use_state(None)
-    deselect_data, set_deselect_data = sl.use_state(None)
-
-    fig = px.imshow(VideoProcessor.active_frame.value)
-
-    fig.update_layout(coloraxis_showscale=False)
-    fig.update_xaxes(showticklabels=False)
-    fig.update_yaxes(showticklabels=False)
-    # fig.update_layout(width=550, height=550)
-    sl.FigurePlotly(
-        fig, on_selection=set_selection_data, on_click=set_click_data, on_hover=set_hover_data, on_unhover=set_unhover_data, on_deselect=set_deselect_data,
-    )
+    sl.Image(VideoProcessor.active_frame.value, width="500px") 
 
 @sl.component
 def FrameVideo():
     url = f'static/public/{VideoProcessor.name.value}'
     ipywidgets.Video.element(value=url.encode('utf8'), format='url', width=500)
-
 
 @sl.component
 def AnalysisViewer():
@@ -116,8 +100,9 @@ def Page():
 
     def clear_files():
         # Remove temp file from the video
-        if os.path.isfile(VideoProcessor.temp_filename):
-            os.remove(VideoProcessor.temp_filename)
+        tempfile.TemporaryDirectory().cleanup()
+        #if os.path.isfile(VideoProcessor.temp_filename):
+        #    os.remove(VideoProcessor.temp_filename)
 
     def process_video():
         if process_video_react.value:
@@ -133,7 +118,7 @@ def Page():
         with sl.Sidebar():
             SharedComponent()
 
-        with sl.ColumnsResponsive(small=12, large=[4, 4, 4]):
+        with sl.ColumnsResponsive(small=12, large=[4, 8]):
             with sl.Card(sl.Text(text=""), style={"max-width": "500px"}, margin=0, classes=["my-2"]):
                 sl.Markdown('### Video files:')
                 sl.DataFrame(VideoProcessor.files_df.value, items_per_page=5, cell_actions=cell_actions)
@@ -144,14 +129,23 @@ def Page():
                     sl.InputInt('Video FPS:', value=sport_clip_fps)
                 sl.FileDrop(label='Alternatively, please provide a video to analyse.', lazy=False, on_file=on_file)
                 
+                def change_analysis_type(value):
+                    analysis_complete.value = False
+                    VideoProcessor.set_frame_progress(0)
+                    VideoProcessor.load_model(value) 
+
                 sl.Select(label='Type of analysis', values=VideoProcessor.analysis_types,
-                        value=VideoProcessor.analysis_type,
-                        on_value=VideoProcessor.load_model)
+                        value=VideoProcessor.analysis_type, on_value=change_analysis_type)
                 if (len(VideoProcessor.analysis_type.value) > 1) and (len(VideoProcessor.name.value) > 1):
                     set_start_analysis(False)
                 with sl.Column():
                     sl.ProgressLinear(value=frame_progress, color="blue")
-                    sl.Button(label='Start analysis', on_click=lambda: process_video_react.set(True), disabled=start_analysis)
+
+                    def start_process_video():
+                        VideoProcessor.set_frame_progress(0)
+                        process_video_react.set(True)
+
+                    sl.Button(label='Start analysis', on_click=start_process_video, disabled=start_analysis)
 
                     if frame_progress == 0:
                         sl.Warning(label=analysis_status)
@@ -164,17 +158,19 @@ def Page():
                     sl.Button(label='Clear temporary files', on_click=clear_files)
 
             if analysis_complete.value:
-                with sl.Column():
-                    if show_video_player:
+                if show_video_player:
+                    with sl.Column():
                         FrameVideo()
-                    else:
-                        FrameViewer()
-                    with sl.Columns([2, 3]):
                         sl.Switch(label="Media player", value=show_video_player, on_value=set_show_video_player)
-                        sl.SliderInt(label='Frame:', min=0, max=len(VideoProcessor.raw_frames)-1,
-                                    value=VideoProcessor.video_frame, on_value=VideoProcessor.update_frame)
+                else:
+                    with sl.ColumnsResponsive(small=12, large=[8, 4]):
+                        with sl.Column():
+                            FrameViewer()
+                            sl.SliderInt(label='Frame:', min=0, max=len(VideoProcessor.raw_frames)-1,
+                                        value=VideoProcessor.video_frame, on_value=VideoProcessor.update_frame)                               
+                            sl.Switch(label="Media player", value=show_video_player, on_value=set_show_video_player)
 
-                with sl.Column():
-                    AnalysisViewer()
-
+                        with sl.Column():
+                            AnalysisViewer()
+                    
     return main
